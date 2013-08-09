@@ -1,0 +1,31 @@
+main-class: "me.ampayne2.teamdeathmatch.TeamDeathmatch"
+description: "The official Ultimate Games Team Deathmatch game"
+version: "1.0"
+author: "ampayne2"
+scoreTypeName: "Kills:Deaths"
+scoreType: "POINTS_HIGHER"
+playerType: "CONFIGUREABLE"
+DefaultSettings:
+  MinPlayers: 4
+  MaxPlayers: 16
+  Players:
+    Store-Inventory: false
+    Store-Armor: false
+    Store-Exp: false
+    Store-Effects: false
+    Store-Gamemode: false
+  Reset-After-Match: true
+  Allow-Explosion-Damage: true
+  Allow-Explosion-Block-Breaking: false
+  Allow-Building: false
+  Allow-Breaking: false
+CustomValues:
+  StartWaitTime: 30
+  GameTime: 300
+Instructions:
+- "Kill the other team as much as possible in the time given!"
+Messages:
+  GameEnd: "%s won %s on arena %s!"
+  GameTie: "%s and %s tied %s on arena %s!"
+  Kill: "%s killed %s!"
+  Team: "You are on team %s!"
