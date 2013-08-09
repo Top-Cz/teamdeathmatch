@@ -119,7 +119,7 @@ public class TeamDeathmatch extends GamePlugin {
         teamBlue.put(arena, teamOne);
         teamRed.put(arena, teamTwo);
         for (String playerName : arena.getPlayers()) {
-            resetInventory(Bukkit.getPlayer(playerName));
+            resetInventory(Bukkit.getPlayerExact(playerName));
         }
         scoreBoard.setVisible(true);
         return true;
@@ -283,4 +283,5 @@ public class TeamDeathmatch extends GamePlugin {
         }
         player.updateInventory();
     }
+    
 }
