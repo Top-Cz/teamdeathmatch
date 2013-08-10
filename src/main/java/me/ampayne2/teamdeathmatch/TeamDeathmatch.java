@@ -127,7 +127,6 @@ public class TeamDeathmatch extends GamePlugin {
 
     @Override
     public void endArena(Arena arena) {
-        List<String> players = arena.getPlayers();
         for (ArenaScoreboard scoreBoard : ultimateGames.getScoreboardManager().getArenaScoreboards(arena)) {
             if (scoreBoard.getName().equals("Kills")) {
                 Integer teamOneScore = scoreBoard.getScore(ChatColor.BLUE + "Team Blue");
@@ -144,9 +143,6 @@ public class TeamDeathmatch extends GamePlugin {
         ultimateGames.getScoreboardManager().removeArenaScoreboard(arena, "Kills");
         teamBlue.put(arena, new ArrayList<String>());
         teamBlue.put(arena, new ArrayList<String>());
-        for (String playerName : players) {
-            ultimateGames.getPlayerManager().removePlayerFromArena(playerName, arena, false);
-        }
     }
 
     @Override
@@ -219,7 +215,9 @@ public class TeamDeathmatch extends GamePlugin {
 
     @Override
     public void onEntityDamage(Arena arena, EntityDamageEvent event) {
-        if ((event.getEntity() instanceof Player && event.getCause() != DamageCause.ENTITY_ATTACK && event.getCause() != DamageCause.PROJECTILE) || arena.getStatus() != ArenaStatus.RUNNING) {
+        if (arena.getStatus() == ArenaStatus.RUNNING && (event.getCause() == DamageCause.ENTITY_ATTACK || event.getCause() == DamageCause.PROJECTILE)) {
+            return;
+        } else {
             event.setCancelled(true);
         }
     }
