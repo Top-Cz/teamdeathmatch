@@ -47,6 +47,7 @@
 		</dependency>
 	</dependencies>
 	<build>
+		<finalName>TeamDeathmatch</finalName>
 		<sourceDirectory>src/main/java</sourceDirectory>
 		<defaultGoal>clean install</defaultGoal>
 		<resources>
