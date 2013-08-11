@@ -109,6 +109,7 @@ public class TeamDeathmatch extends GamePlugin {
                 if (teamOne.size() <= teamTwo.size()) {
                     teamOne.add(playerName);
                     ultimateGames.getMessageManager().sendReplacedGameMessage(game, playerName, "Team", ChatColor.BLUE + "Team Blue");
+                    scoreBoard.addPlayer(playerName);
                     scoreBoard.setPlayerColor(playerName, ChatColor.BLUE);
                     SpawnPoint spawnPoint = ultimateGames.getSpawnpointManager().getSpawnPoint(arena, 0);
                     spawnPoint.lock(false);
@@ -116,6 +117,7 @@ public class TeamDeathmatch extends GamePlugin {
                 } else if (teamOne.size() > teamTwo.size()) {
                     teamTwo.add(playerName);
                     ultimateGames.getMessageManager().sendReplacedGameMessage(game, playerName, "Team", ChatColor.RED + "Team Red");
+                    scoreBoard.addPlayer(playerName);
                     scoreBoard.setPlayerColor(playerName, ChatColor.RED);
                     SpawnPoint spawnPoint = ultimateGames.getSpawnpointManager().getSpawnPoint(arena, 1);
                     spawnPoint.lock(false);
