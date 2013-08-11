@@ -28,4 +28,5 @@ Messages:
   GameEnd: "%s won %s on arena %s!"
   GameTie: "%s and %s tied %s on arena %s!"
   Kill: "%s killed %s!"
+  Death: "%s died!"
   Team: "You are on team %s!"
