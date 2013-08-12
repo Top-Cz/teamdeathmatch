@@ -7,12 +7,13 @@ import java.util.Map;
 import java.util.Random;
 
 import me.ampayne2.ultimategames.UltimateGames;
-import me.ampayne2.ultimategames.api.ArenaScoreboard;
 import me.ampayne2.ultimategames.api.GamePlugin;
 import me.ampayne2.ultimategames.arenas.Arena;
+import me.ampayne2.ultimategames.arenas.SpawnPoint;
 import me.ampayne2.ultimategames.enums.ArenaStatus;
 import me.ampayne2.ultimategames.games.Game;
-import me.ampayne2.ultimategames.players.SpawnPoint;
+import me.ampayne2.ultimategames.scoreboards.ArenaScoreboard;
+
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Color;
@@ -58,29 +59,22 @@ public class TeamDeathmatch extends GamePlugin {
 
     @Override
     public Boolean loadArena(Arena arena) {
-        ultimateGames.addAPIHandler("/" + game.getGameDescription().getName() + "/" + arena.getName(), new TeamDeathmatchWebHandler(ultimateGames, arena));
         teamBlue.put(arena, new ArrayList<String>());
         teamRed.put(arena, new ArrayList<String>());
+        ultimateGames.addAPIHandler("/" + game.getGameDescription().getName() + "/" + arena.getName(), new TeamDeathmatchWebHandler(ultimateGames, arena));
         return true;
     }
 
     @Override
     public Boolean unloadArena(Arena arena) {
-        if (teamBlue.containsKey(arena)) {
-            teamBlue.remove(arena);
-        }
-        if (teamRed.containsKey(arena)) {
-            teamRed.remove(arena);
-        }
+        teamBlue.remove(arena);
+        teamRed.remove(arena);
         return true;
     }
 
     @Override
     public Boolean isStartPossible(Arena arena) {
-        if (arena.getStatus() == ArenaStatus.OPEN) {
-            return true;
-        }
-        return false;
+        return arena.getStatus() == ArenaStatus.OPEN;
     }
 
     @Override
@@ -90,11 +84,10 @@ public class TeamDeathmatch extends GamePlugin {
 
     @Override
     public Boolean beginArena(Arena arena) {
+        // Creates a new ending countdown
         ultimateGames.getCountdownManager().createEndingCountdown(arena, ultimateGames.getConfigManager().getGameConfig(game).getConfig().getInt("CustomValues.GameTime"), true);
 
-        for (ArenaScoreboard scoreBoard : new ArrayList<ArenaScoreboard>(ultimateGames.getScoreboardManager().getArenaScoreboards(arena))) {
-            ultimateGames.getScoreboardManager().removeArenaScoreboard(arena, scoreBoard.getName());
-        }
+        // Creates a new arena scoreboard and adds team blue and red
         ArenaScoreboard scoreBoard = ultimateGames.getScoreboardManager().createArenaScoreboard(arena, "Kills");
         scoreBoard.setScore(ChatColor.BLUE + "Team Blue", 0);
         scoreBoard.setScore(ChatColor.RED + "Team Red", 0);
@@ -103,12 +96,13 @@ public class TeamDeathmatch extends GamePlugin {
         List<String> teamTwo = new ArrayList<String>();
 
         Random generator = new Random();
+        if (arena.getPlayers().size() % 2 != 0) {
+            ultimateGames.getPlayerManager().removePlayerFromArena(arena.getPlayers().get(arena.getPlayers().size() - 1), arena, false);
+        }
         while (teamOne.size() + teamTwo.size() != arena.getPlayers().size()) {
             String playerName = arena.getPlayers().get(generator.nextInt(arena.getPlayers().size()));
             if (!teamOne.contains(playerName) && !teamTwo.contains(playerName)) {
-                if (teamOne.size() + teamTwo.size() + 1 == arena.getPlayers().size() && arena.getPlayers().size() % 2 != 0) {
-                    ultimateGames.getPlayerManager().removePlayerFromArena(playerName, arena, true);
-                } else if (teamOne.size() <= teamTwo.size()) {
+                if (teamOne.size() <= teamTwo.size()) {
                     teamOne.add(playerName);
                     ultimateGames.getMessageManager().sendReplacedGameMessage(game, playerName, "Team", ChatColor.BLUE + "Team Blue");
                     scoreBoard.addPlayer(playerName);
@@ -153,7 +147,6 @@ public class TeamDeathmatch extends GamePlugin {
                 }
             }
         }
-        ultimateGames.getScoreboardManager().removeArenaScoreboard(arena, "Kills");
         teamBlue.put(arena, new ArrayList<String>());
         teamBlue.put(arena, new ArrayList<String>());
     }
@@ -191,6 +184,29 @@ public class TeamDeathmatch extends GamePlugin {
 
     @Override
     public Boolean removePlayer(Arena arena, String playerName) {
+        String newPlayer = null;
+        List<String> queuePlayer = ultimateGames.getQueueManager().getNextPlayers(1, arena);
+        if (!queuePlayer.isEmpty()) {
+            newPlayer = queuePlayer.get(0);
+            ultimateGames.getQueueManager().removePlayerFromQueues(newPlayer);
+        }
+        if (teamBlue.get(arena).contains(playerName)) {
+            teamBlue.get(arena).remove(playerName);
+            if (newPlayer != null) {
+                teamBlue.get(arena).add(newPlayer);
+                for (ArenaScoreboard scoreBoard : ultimateGames.getScoreboardManager().getArenaScoreboards(arena)) {
+                    scoreBoard.setPlayerColor(newPlayer, ChatColor.BLUE);
+                }
+            }
+        } else if (teamRed.get(arena).contains(playerName)) {
+            teamRed.get(arena).remove(playerName);
+            if (newPlayer != null) {
+                teamRed.get(arena).add(newPlayer);
+                for (ArenaScoreboard scoreBoard : ultimateGames.getScoreboardManager().getArenaScoreboards(arena)) {
+                    scoreBoard.setPlayerColor(newPlayer, ChatColor.RED);
+                }
+            }
+        }
         if (arena.getStatus() == ArenaStatus.RUNNING && !(teamBlue.get(arena).size() == 0 && teamRed.get(arena).size() == 0) && (teamBlue.get(arena).size() == 0 || teamRed.get(arena).size() == 0)) {
             ultimateGames.getArenaManager().endArena(arena);
         }
@@ -283,12 +299,10 @@ public class TeamDeathmatch extends GamePlugin {
     @SuppressWarnings("deprecation")
     private void resetInventory(Player player) {
         player.getInventory().clear();
-        player.getInventory().addItem(new ItemStack(Material.IRON_SWORD, 1), new ItemStack(Material.BOW, 1), new ItemStack(Material.ARROW, 32));
+        player.getInventory().addItem(new ItemStack(Material.IRON_SWORD, 1), new ItemStack(Material.BOW, 1), new ItemStack(Material.ARROW, 32), ultimateGames.getUtils().createInstructionBook(game));
         String playerName = player.getName();
         if (ultimateGames.getPlayerManager().isPlayerInArena(playerName)) {
-            Arena arena = ultimateGames.getPlayerManager().getPlayerArena(playerName);
-            player.getInventory().addItem(ultimateGames.getUtils().createInstructionBook(arena.getGame()));
-            Color color = teamBlue.get(arena).contains(playerName) ? Color.BLUE : Color.RED;
+            Color color = teamBlue.get(ultimateGames.getPlayerManager().getPlayerArena(playerName)).contains(playerName) ? Color.BLUE : Color.RED;
             ItemStack helmet = ultimateGames.getUtils().colorArmor(new ItemStack(Material.LEATHER_HELMET, 1), color);
             ItemStack chestplate = ultimateGames.getUtils().colorArmor(new ItemStack(Material.LEATHER_CHESTPLATE, 1), color);
             ItemStack leggings = ultimateGames.getUtils().colorArmor(new ItemStack(Material.LEATHER_LEGGINGS, 1), color);
