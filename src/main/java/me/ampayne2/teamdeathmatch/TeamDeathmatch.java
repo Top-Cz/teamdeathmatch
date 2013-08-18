@@ -30,8 +30,6 @@ import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerPickupItemEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.potion.PotionEffect;
-import org.bukkit.potion.PotionEffectType;
 
 public class TeamDeathmatch extends GamePlugin {
 
@@ -97,27 +95,28 @@ public class TeamDeathmatch extends GamePlugin {
 
         Random generator = new Random();
         if (arena.getPlayers().size() % 2 != 0) {
-            ultimateGames.getPlayerManager().removePlayerFromArena(arena.getPlayers().get(arena.getPlayers().size() - 1), arena, false);
+            ultimateGames.getPlayerManager().removePlayerFromArena(Bukkit.getPlayerExact(arena.getPlayers().get(arena.getPlayers().size() - 1)), false);
         }
         while (teamOne.size() + teamTwo.size() != arena.getPlayers().size()) {
             String playerName = arena.getPlayers().get(generator.nextInt(arena.getPlayers().size()));
             if (!teamOne.contains(playerName) && !teamTwo.contains(playerName)) {
+                Player player = Bukkit.getPlayerExact(playerName);
                 if (teamOne.size() <= teamTwo.size()) {
                     teamOne.add(playerName);
                     ultimateGames.getMessageManager().sendReplacedGameMessage(game, playerName, "Team", ChatColor.BLUE + "Team Blue");
-                    scoreBoard.addPlayer(playerName);
-                    scoreBoard.setPlayerColor(playerName, ChatColor.BLUE);
+                    scoreBoard.addPlayer(player);
+                    scoreBoard.setPlayerColor(player, ChatColor.BLUE);
                     SpawnPoint spawnPoint = ultimateGames.getSpawnpointManager().getSpawnPoint(arena, 0);
                     spawnPoint.lock(false);
-                    spawnPoint.teleportPlayer(playerName);
+                    spawnPoint.teleportPlayer(player);
                 } else if (teamOne.size() > teamTwo.size()) {
                     teamTwo.add(playerName);
                     ultimateGames.getMessageManager().sendReplacedGameMessage(game, playerName, "Team", ChatColor.RED + "Team Red");
-                    scoreBoard.addPlayer(playerName);
-                    scoreBoard.setPlayerColor(playerName, ChatColor.RED);
+                    scoreBoard.addPlayer(player);
+                    scoreBoard.setPlayerColor(player, ChatColor.RED);
                     SpawnPoint spawnPoint = ultimateGames.getSpawnpointManager().getSpawnPoint(arena, 1);
                     spawnPoint.lock(false);
-                    spawnPoint.teleportPlayer(playerName);
+                    spawnPoint.teleportPlayer(player);
                 }
             }
         }
@@ -167,14 +166,13 @@ public class TeamDeathmatch extends GamePlugin {
     }
 
     @Override
-    public Boolean addPlayer(Arena arena, String playerName) {
+    public Boolean addPlayer(Player player, Arena arena) {
         if (arena.getStatus() == ArenaStatus.OPEN && arena.getPlayers().size() >= arena.getMinPlayers() && !ultimateGames.getCountdownManager().isStartingCountdownEnabled(arena)) {
             ultimateGames.getCountdownManager().createStartingCountdown(arena, ultimateGames.getConfigManager().getGameConfig(game).getConfig().getInt("CustomValues.StartWaitTime"));
         }
         SpawnPoint spawnPoint = ultimateGames.getSpawnpointManager().getRandomSpawnPoint(arena);
         spawnPoint.lock(false);
-        spawnPoint.teleportPlayer(playerName);
-        Player player = Bukkit.getPlayerExact(playerName);
+        spawnPoint.teleportPlayer(player);
         player.setHealth(20.0);
         player.setFoodLevel(20);
         player.getInventory().clear();
@@ -183,7 +181,8 @@ public class TeamDeathmatch extends GamePlugin {
     }
 
     @Override
-    public Boolean removePlayer(Arena arena, String playerName) {
+    public void removePlayer(Player player, Arena arena) {
+        String playerName = player.getName();
         String newPlayer = null;
         List<String> queuePlayer = ultimateGames.getQueueManager().getNextPlayers(1, arena);
         if (!queuePlayer.isEmpty()) {
@@ -195,7 +194,7 @@ public class TeamDeathmatch extends GamePlugin {
             if (newPlayer != null) {
                 teamBlue.get(arena).add(newPlayer);
                 for (ArenaScoreboard scoreBoard : ultimateGames.getScoreboardManager().getArenaScoreboards(arena)) {
-                    scoreBoard.setPlayerColor(newPlayer, ChatColor.BLUE);
+                    scoreBoard.setPlayerColor(Bukkit.getPlayerExact(newPlayer), ChatColor.BLUE);
                 }
             }
         } else if (teamRed.get(arena).contains(playerName)) {
@@ -203,14 +202,13 @@ public class TeamDeathmatch extends GamePlugin {
             if (newPlayer != null) {
                 teamRed.get(arena).add(newPlayer);
                 for (ArenaScoreboard scoreBoard : ultimateGames.getScoreboardManager().getArenaScoreboards(arena)) {
-                    scoreBoard.setPlayerColor(newPlayer, ChatColor.RED);
+                    scoreBoard.setPlayerColor(Bukkit.getPlayerExact(newPlayer), ChatColor.RED);
                 }
             }
         }
         if (arena.getStatus() == ArenaStatus.RUNNING && !(teamBlue.get(arena).size() == 0 && teamRed.get(arena).size() == 0) && (teamBlue.get(arena).size() == 0 || teamRed.get(arena).size() == 0)) {
             ultimateGames.getArenaManager().endArena(arena);
         }
-        return true;
     }
 
     @Override
@@ -220,9 +218,6 @@ public class TeamDeathmatch extends GamePlugin {
             String killerName = null;
             if (killer != null) {
                 killerName = killer.getName();
-                if (ultimateGames.getPlayerManager().isPlayerInArena(killer.getName()) && ultimateGames.getPlayerManager().getPlayerArena(killer.getName()).equals(arena)) {
-                    killer.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, 20 * 10, 2));
-                }
                 for (ArenaScoreboard scoreBoard : ultimateGames.getScoreboardManager().getArenaScoreboards(arena)) {
                     if (scoreBoard.getName().equals("Kills") && killerName != null) {
                         if (teamBlue.get(arena).contains(killerName)) {

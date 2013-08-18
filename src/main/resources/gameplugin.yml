@@ -17,8 +17,7 @@ DefaultSettings:
   Reset-After-Match: true
   Allow-Explosion-Damage: true
   Allow-Explosion-Block-Breaking: false
-  Allow-Building: false
-  Allow-Breaking: false
+  Use-Whitelist-As-Blacklist: false
 CustomValues:
   StartWaitTime: 30
   GameTime: 300
