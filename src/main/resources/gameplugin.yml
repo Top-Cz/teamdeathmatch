@@ -14,9 +14,10 @@ DefaultSettings:
     Store-Exp: false
     Store-Effects: false
     Store-Gamemode: false
-  Reset-After-Match: true
+  Reset-After-Match: false
   Allow-Explosion-Damage: true
   Allow-Explosion-Block-Breaking: false
+  Allow-Mob-Spawning: false
   Use-Whitelist-As-Blacklist: false
 CustomValues:
   StartWaitTime: 30
