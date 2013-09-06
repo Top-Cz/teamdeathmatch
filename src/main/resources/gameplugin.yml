@@ -29,4 +29,6 @@ Messages:
   GameTie: "%s and %s tied %s on arena %s!"
   Kill: "%s killed %s!"
   Death: "%s died!"
-  Team: "You are on team %s!"
+  Notateam: "%s is not an existing team! Choose between blue and red."
+  Classnotunlocked: "You have not unlocked the %s class!"
+  Teamfull: "Cannot join team %s!"
