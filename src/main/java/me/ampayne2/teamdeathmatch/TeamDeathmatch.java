@@ -90,15 +90,23 @@ public class TeamDeathmatch extends GamePlugin {
 
         TeamManager teamManager = ultimateGames.getTeamManager();
         teamManager.sortPlayersIntoTeams(arena);
-        for (String playerName : teamManager.getTeam(arena, "Blue").getPlayers()) {
+        Team blue = teamManager.getTeam(arena, "Blue");
+        Team red = teamManager.getTeam(arena, "Red");
+        for (String playerName : blue.getPlayers()) {
+            Player player = Bukkit.getPlayerExact(playerName);
+            scoreBoard.addPlayer(player);
             SpawnPoint spawnPoint = ultimateGames.getSpawnpointManager().getSpawnPoint(arena, 0);
             spawnPoint.lock(false);
-            spawnPoint.teleportPlayer(Bukkit.getPlayerExact(playerName));
+            spawnPoint.teleportPlayer(player);
+            blue.setPlayerColorToTeamColor(player);
         }
-        for (String playerName : teamManager.getTeam(arena, "Red").getPlayers()) {
+        for (String playerName : red.getPlayers()) {
+            Player player = Bukkit.getPlayerExact(playerName);
+            scoreBoard.addPlayer(player);
             SpawnPoint spawnPoint = ultimateGames.getSpawnpointManager().getSpawnPoint(arena, 1);
             spawnPoint.lock(false);
-            spawnPoint.teleportPlayer(Bukkit.getPlayerExact(playerName));
+            spawnPoint.teleportPlayer(player);
+            red.setPlayerColorToTeamColor(player);
         }
 
         for (String playerName : arena.getPlayers()) {
@@ -207,9 +215,9 @@ public class TeamDeathmatch extends GamePlugin {
             ArenaScoreboard scoreBoard = ultimateGames.getScoreboardManager().getArenaScoreboard(arena);
             if (scoreBoard != null) {
                 Team team = ultimateGames.getTeamManager().getPlayerTeam(playerName);
-                if (team.getName().equals("Blue")) {
+                if (team.getName().equals("Red")) {
                     scoreBoard.setScore(ChatColor.BLUE + "Team Blue", scoreBoard.getScore(ChatColor.BLUE + "Team Blue") + 1);
-                } else if (team.getName().equals("Red")) {
+                } else if (team.getName().equals("Blue")) {
                     scoreBoard.setScore(ChatColor.RED + "Team Red", scoreBoard.getScore(ChatColor.RED + "Team Red") + 1);
                 }
             }
@@ -256,7 +264,7 @@ public class TeamDeathmatch extends GamePlugin {
             if (teamName.equals("blue")) {
                 Team team = teamManager.getTeam(arena, "Blue");
                 if (team.hasSpace()) {
-                    team.addPlayer(player);
+                    teamManager.setPlayerTeam(player, team);
                     SpawnPoint spawnPoint = ultimateGames.getSpawnpointManager().getSpawnPoint(arena, 0);
                     spawnPoint.lock(false);
                     spawnPoint.teleportPlayer(player);
@@ -266,8 +274,8 @@ public class TeamDeathmatch extends GamePlugin {
             } else if (teamName.equals("red")) {
                 Team team = teamManager.getTeam(arena, "Red");
                 if (team.hasSpace()) {
-                    team.addPlayer(player);
-                    SpawnPoint spawnPoint = ultimateGames.getSpawnpointManager().getSpawnPoint(arena, 0);
+                    teamManager.setPlayerTeam(player, team);
+                    SpawnPoint spawnPoint = ultimateGames.getSpawnpointManager().getSpawnPoint(arena, 1);
                     spawnPoint.lock(false);
                     spawnPoint.teleportPlayer(player);
                 } else {
