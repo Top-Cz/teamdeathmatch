@@ -125,8 +125,16 @@ public class TeamDeathmatch extends GamePlugin {
             Integer teamTwoScore = scoreBoard.getScore(ChatColor.RED + "Team Red");
             if (teamOneScore > teamTwoScore) {
                 ultimateGames.getMessageManager().sendGameMessage(ultimateGames.getServer(), game, "GameEnd", "Team Blue", game.getName(), arena.getName());
+                for (String player : ultimateGames.getTeamManager().getTeam(arena, "Blue").getPlayers()) {
+                    ultimateGames.getPointManager().addPoint(game, player, "store", 25);
+                    ultimateGames.getPointManager().addPoint(game, player, "win", 1);
+                }
             } else if (teamOneScore < teamTwoScore) {
                 ultimateGames.getMessageManager().sendGameMessage(ultimateGames.getServer(), game, "GameEnd", "Team Red", game.getName(), arena.getName());
+                for (String player : ultimateGames.getTeamManager().getTeam(arena, "Red").getPlayers()) {
+                    ultimateGames.getPointManager().addPoint(game, player, "store", 25);
+                    ultimateGames.getPointManager().addPoint(game, player, "win", 1);
+                }
             } else {
                 ultimateGames.getMessageManager().sendGameMessage(ultimateGames.getServer(), game, "GameTie", "Team Blue", "Team Red", game.getName(), arena.getName());
             }
@@ -215,6 +223,8 @@ public class TeamDeathmatch extends GamePlugin {
             Player killer = event.getEntity().getKiller();
             if (killer != null) {
                 ultimateGames.getMessageManager().sendGameMessage(arena, game, "Kill", killer.getName(), playerName);
+                ultimateGames.getPointManager().addPoint(game, killer.getName(), "kill", 1);
+                ultimateGames.getPointManager().addPoint(game, killer.getName(), "store", 1);
             } else {
                 ultimateGames.getMessageManager().sendGameMessage(arena, game, "Death", playerName);
             }
