@@ -228,6 +228,7 @@ public class TeamDeathmatch extends GamePlugin {
             } else {
                 ultimateGames.getMessageManager().sendGameMessage(arena, game, "Death", playerName);
             }
+            ultimateGames.getPointManager().addPoint(game, playerName, "death", 1);
             ArenaScoreboard scoreBoard = ultimateGames.getScoreboardManager().getArenaScoreboard(arena);
             if (scoreBoard != null) {
                 Team team = ultimateGames.getTeamManager().getPlayerTeam(playerName);
