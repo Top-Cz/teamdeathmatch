@@ -4,13 +4,13 @@ import java.util.List;
 import me.ampayne2.ultimategames.UltimateGames;
 import me.ampayne2.ultimategames.api.GamePlugin;
 import me.ampayne2.ultimategames.arenas.Arena;
-import me.ampayne2.ultimategames.arenas.PlayerSpawnPoint;
-import me.ampayne2.ultimategames.enums.ArenaStatus;
+import me.ampayne2.ultimategames.arenas.ArenaStatus;
+import me.ampayne2.ultimategames.arenas.scoreboards.ArenaScoreboard;
+import me.ampayne2.ultimategames.arenas.spawnpoints.PlayerSpawnPoint;
 import me.ampayne2.ultimategames.games.Game;
-import me.ampayne2.ultimategames.scoreboards.ArenaScoreboard;
-import me.ampayne2.ultimategames.teams.Team;
-import me.ampayne2.ultimategames.teams.TeamManager;
 
+import me.ampayne2.ultimategames.players.teams.Team;
+import me.ampayne2.ultimategames.players.teams.TeamManager;
 import me.ampayne2.ultimategames.utils.UGUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
