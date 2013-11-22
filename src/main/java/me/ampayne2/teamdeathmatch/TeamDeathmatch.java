@@ -33,7 +33,7 @@ public class TeamDeathmatch extends GamePlugin {
     private Game game;
 
     @Override
-    public Boolean loadGame(UltimateGames ultimateGames, Game game) {
+    public boolean loadGame(UltimateGames ultimateGames, Game game) {
         this.ultimateGames = ultimateGames;
         this.game = game;
         return true;
@@ -45,17 +45,17 @@ public class TeamDeathmatch extends GamePlugin {
     }
 
     @Override
-    public Boolean reloadGame() {
+    public boolean reloadGame() {
         return true;
     }
 
     @Override
-    public Boolean stopGame() {
+    public boolean stopGame() {
         return true;
     }
 
     @Override
-    public Boolean loadArena(Arena arena) {
+    public boolean loadArena(Arena arena) {
         TeamManager teamManager = ultimateGames.getTeamManager();
         teamManager.addTeam(new Team(ultimateGames, "Blue", arena, ChatColor.BLUE, false));
         teamManager.addTeam(new Team(ultimateGames, "Red", arena, ChatColor.RED, false));
@@ -64,23 +64,23 @@ public class TeamDeathmatch extends GamePlugin {
     }
 
     @Override
-    public Boolean unloadArena(Arena arena) {
+    public boolean unloadArena(Arena arena) {
         ultimateGames.getTeamManager().removeTeamsOfArena(arena);
         return true;
     }
 
     @Override
-    public Boolean isStartPossible(Arena arena) {
+    public boolean isStartPossible(Arena arena) {
         return arena.getStatus() == ArenaStatus.OPEN;
     }
 
     @Override
-    public Boolean startArena(Arena arena) {
+    public boolean startArena(Arena arena) {
         return true;
     }
 
     @Override
-    public Boolean beginArena(Arena arena) {
+    public boolean beginArena(Arena arena) {
         // Creates a new ending countdown
         ultimateGames.getCountdownManager().createEndingCountdown(arena, ultimateGames.getConfigManager().getGameConfig(game).getConfig().getInt("CustomValues.GameTime"), true);
 
@@ -142,23 +142,23 @@ public class TeamDeathmatch extends GamePlugin {
     }
 
     @Override
-    public Boolean resetArena(Arena arena) {
+    public boolean resetArena(Arena arena) {
         return true;
     }
 
     @Override
-    public Boolean openArena(Arena arena) {
+    public boolean openArena(Arena arena) {
         return true;
     }
 
     @Override
-    public Boolean stopArena(Arena arena) {
+    public boolean stopArena(Arena arena) {
         return true;
     }
 
     @SuppressWarnings("deprecation")
     @Override
-    public Boolean addPlayer(Player player, Arena arena) {
+    public boolean addPlayer(Player player, Arena arena) {
         if (arena.getStatus() == ArenaStatus.OPEN && arena.getPlayers().size() >= arena.getMinPlayers() && !ultimateGames.getCountdownManager().hasStartingCountdown(arena)) {
             ultimateGames.getCountdownManager().createStartingCountdown(arena, ultimateGames.getConfigManager().getGameConfig(game).getConfig().getInt("CustomValues.StartWaitTime"));
         }
@@ -197,7 +197,7 @@ public class TeamDeathmatch extends GamePlugin {
 
     @SuppressWarnings("deprecation")
     @Override
-    public Boolean addSpectator(Player player, Arena arena) {
+    public boolean addSpectator(Player player, Arena arena) {
         ultimateGames.getSpawnpointManager().getSpectatorSpawnPoint(arena).teleportPlayer(player);
         for (PotionEffect potionEffect : player.getActivePotionEffects()) {
             player.removePotionEffect(potionEffect.getType());
