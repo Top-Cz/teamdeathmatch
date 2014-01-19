@@ -1,15 +1,14 @@
 package me.ampayne2.teamdeathmatch;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import me.ampayne2.ultimategames.arenas.scoreboards.ArenaScoreboard;
-import org.bukkit.ChatColor;
-
 import me.ampayne2.ultimategames.UltimateGames;
 import me.ampayne2.ultimategames.arenas.Arena;
+import me.ampayne2.ultimategames.arenas.scoreboards.ArenaScoreboard;
 import me.ampayne2.ultimategames.gson.Gson;
 import me.ampayne2.ultimategames.webapi.WebHandler;
+import org.bukkit.ChatColor;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class TeamDeathmatchWebHandler implements WebHandler {
 
@@ -27,7 +26,7 @@ public class TeamDeathmatchWebHandler implements WebHandler {
 
         Map<String, Integer> map = new HashMap<String, Integer>();
 
-        ArenaScoreboard scoreBoard = ug.getScoreboardManager().getArenaScoreboard(arena);
+        ArenaScoreboard scoreBoard = ug.getScoreboardManager().getScoreboard(arena);
         if (scoreBoard != null) {
             map.put("Team Blue", scoreBoard.getScore(ChatColor.BLUE + "Team Blue"));
             map.put("Team Red", scoreBoard.getScore(ChatColor.RED + "Team Red"));

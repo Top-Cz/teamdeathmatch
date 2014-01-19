@@ -2,8 +2,6 @@ main-class: "me.ampayne2.teamdeathmatch.TeamDeathmatch"
 description: "The official Ultimate Games Team Deathmatch game"
 version: "1.0"
 author: "ampayne2"
-scoreTypeName: "Kills:Deaths"
-scoreType: "POINTS_HIGHER"
 playerType: "CONFIGUREABLE"
 DefaultSettings:
   MinPlayers: 4
