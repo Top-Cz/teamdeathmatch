@@ -285,7 +285,7 @@ public class TeamDeathmatch extends GamePlugin {
                 message.append(s);
                 message.append(" ");
             }
-            ultimateGames.getMessenger().sendMessage(arena, UGMessage.CHAT, teamColor + playerName, message.toString());
+            ultimateGames.getMessenger().sendRawMessage(arena, ChatColor.DARK_GRAY + "[S]" +  String.format(UGMessage.CHAT.getMessage(), teamColor + playerName, message.toString()));
         }
     }
 
@@ -295,9 +295,11 @@ public class TeamDeathmatch extends GamePlugin {
         player.getInventory().addItem(new ItemStack(Material.IRON_SWORD, 1), new ItemStack(Material.BOW, 1), new ItemStack(Material.ARROW, 32), UGUtils.createInstructionBook(game));
         String playerName = player.getName();
         if (ultimateGames.getPlayerManager().isPlayerInArena(playerName)) {
+            /*
             if (arena.getStatus() == ArenaStatus.OPEN || arena.getStatus() == ArenaStatus.STARTING) {
                 player.getInventory().addItem(TEAM_SELECTOR.getItem());
             }
+            */
             Color color = ultimateGames.getTeamManager().getPlayerTeam(playerName).getName().equals("Blue") ? Color.BLUE : Color.RED;
             ItemStack helmet = UGUtils.colorArmor(new ItemStack(Material.LEATHER_HELMET, 1), color);
             ItemStack chestplate = UGUtils.colorArmor(new ItemStack(Material.LEATHER_CHESTPLATE, 1), color);
