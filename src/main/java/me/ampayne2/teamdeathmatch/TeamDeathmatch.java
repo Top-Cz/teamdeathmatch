@@ -7,8 +7,11 @@ import me.ampayne2.ultimategames.api.arenas.scoreboards.Scoreboard;
 import me.ampayne2.ultimategames.api.arenas.spawnpoints.PlayerSpawnPoint;
 import me.ampayne2.ultimategames.api.games.Game;
 import me.ampayne2.ultimategames.api.games.GamePlugin;
+import me.ampayne2.ultimategames.api.games.items.GameItem;
+import me.ampayne2.ultimategames.api.message.UGMessage;
 import me.ampayne2.ultimategames.api.players.teams.Team;
 import me.ampayne2.ultimategames.api.players.teams.TeamManager;
+import me.ampayne2.ultimategames.api.players.teams.TeamSelector;
 import me.ampayne2.ultimategames.api.utils.UGUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -30,11 +33,16 @@ import java.util.List;
 public class TeamDeathmatch extends GamePlugin {
     private UltimateGames ultimateGames;
     private Game game;
+    private GameItem TEAM_SELECTOR;
 
     @Override
     public boolean loadGame(UltimateGames ultimateGames, Game game) {
         this.ultimateGames = ultimateGames;
         this.game = game;
+        game.setMessages(TDMessage.class);
+
+        TEAM_SELECTOR = new TeamSelector(ultimateGames);
+        ultimateGames.getGameItemManager().registerGameItem(game, TEAM_SELECTOR);
         return true;
     }
 
@@ -109,7 +117,7 @@ public class TeamDeathmatch extends GamePlugin {
         }
 
         for (String playerName : arena.getPlayers()) {
-            resetInventory(Bukkit.getPlayerExact(playerName));
+            resetInventory(Bukkit.getPlayerExact(playerName), arena);
         }
         return true;
     }
@@ -121,19 +129,19 @@ public class TeamDeathmatch extends GamePlugin {
             Integer teamOneScore = scoreBoard.getScore(ChatColor.BLUE + "Team Blue");
             Integer teamTwoScore = scoreBoard.getScore(ChatColor.RED + "Team Red");
             if (teamOneScore > teamTwoScore) {
-                ultimateGames.getMessenger().sendGameMessage(Bukkit.getServer(), game, "GameEnd", "Team Blue", game.getName(), arena.getName());
+                ultimateGames.getMessenger().sendGameMessage(Bukkit.getServer(), game, TDMessage.GAME_END, "Team Blue", game.getName(), arena.getName());
                 for (String player : ultimateGames.getTeamManager().getTeam(arena, "Blue").getPlayers()) {
                     ultimateGames.getPointManager().addPoint(game, player, "store", 25);
                     ultimateGames.getPointManager().addPoint(game, player, "win", 1);
                 }
             } else if (teamOneScore < teamTwoScore) {
-                ultimateGames.getMessenger().sendGameMessage(Bukkit.getServer(), game, "GameEnd", "Team Red", game.getName(), arena.getName());
+                ultimateGames.getMessenger().sendGameMessage(Bukkit.getServer(), game, TDMessage.GAME_END, "Team Red", game.getName(), arena.getName());
                 for (String player : ultimateGames.getTeamManager().getTeam(arena, "Red").getPlayers()) {
                     ultimateGames.getPointManager().addPoint(game, player, "store", 25);
                     ultimateGames.getPointManager().addPoint(game, player, "win", 1);
                 }
             } else {
-                ultimateGames.getMessenger().sendGameMessage(Bukkit.getServer(), game, "GameTie", "Team Blue", "Team Red", game.getName(), arena.getName());
+                ultimateGames.getMessenger().sendGameMessage(Bukkit.getServer(), game, TDMessage.GAME_TIE, "Team Blue", "Team Red", game.getName(), arena.getName());
             }
         }
     }
@@ -214,11 +222,11 @@ public class TeamDeathmatch extends GamePlugin {
             String playerName = event.getEntity().getName();
             Player killer = event.getEntity().getKiller();
             if (killer != null) {
-                ultimateGames.getMessenger().sendGameMessage(arena, game, "Kill", killer.getName(), playerName);
+                ultimateGames.getMessenger().sendGameMessage(arena, game, TDMessage.KILL, killer.getName(), playerName);
                 ultimateGames.getPointManager().addPoint(game, killer.getName(), "kill", 1);
                 ultimateGames.getPointManager().addPoint(game, killer.getName(), "store", 1);
             } else {
-                ultimateGames.getMessenger().sendGameMessage(arena, game, "Death", playerName);
+                ultimateGames.getMessenger().sendGameMessage(arena, game, TDMessage.DEATH, playerName);
             }
             ultimateGames.getPointManager().addPoint(game, playerName, "death", 1);
             Scoreboard scoreBoard = ultimateGames.getScoreboardManager().getScoreboard(arena);
@@ -238,7 +246,7 @@ public class TeamDeathmatch extends GamePlugin {
     @Override
     public void onPlayerRespawn(Arena arena, PlayerRespawnEvent event) {
         event.setRespawnLocation(ultimateGames.getSpawnpointManager().getSpawnPoint(arena, ultimateGames.getTeamManager().getPlayerTeam(event.getPlayer().getName()).getName().equals("Blue") ? 0 : 1).getLocation());
-        resetInventory(event.getPlayer());
+        resetInventory(event.getPlayer(), arena);
     }
 
     @Override
@@ -265,45 +273,31 @@ public class TeamDeathmatch extends GamePlugin {
 
     @Override
     public void onArenaCommand(Arena arena, String command, CommandSender sender, String[] args) {
-        Player player = (Player) sender;
-        if ((arena.getStatus() == ArenaStatus.STARTING || arena.getStatus() == ArenaStatus.OPEN) && command.equals("team") && args.length == 1) {
-            String teamName = args[0].toLowerCase();
-            TeamManager teamManager = ultimateGames.getTeamManager();
-            switch (args[0].toLowerCase()) {
-                case "blue":
-                    Team team = teamManager.getTeam(arena, "Blue");
-                    if (team.hasSpace()) {
-                        teamManager.setPlayerTeam(player, team);
-                        PlayerSpawnPoint spawnPoint = ultimateGames.getSpawnpointManager().getSpawnPoint(arena, 0);
-                        spawnPoint.lock(false);
-                        spawnPoint.teleportPlayer(player);
-                    } else {
-                        ultimateGames.getMessenger().sendGameMessage(sender, game, "Teamfull", teamName);
-                    }
-                    break;
-                case "red":
-                    team = teamManager.getTeam(arena, "Red");
-                    if (team.hasSpace()) {
-                        teamManager.setPlayerTeam(player, team);
-                        PlayerSpawnPoint spawnPoint = ultimateGames.getSpawnpointManager().getSpawnPoint(arena, 1);
-                        spawnPoint.lock(false);
-                        spawnPoint.teleportPlayer(player);
-                    } else {
-                        ultimateGames.getMessenger().sendGameMessage(sender, game, "Teamfull", teamName);
-                    }
-                    break;
-                default:
-                    ultimateGames.getMessenger().sendGameMessage(sender, game, "Notateam", teamName);
+        if (arena.getStatus() == ArenaStatus.RUNNING && command.equalsIgnoreCase("shout")) {
+            Player player = (Player) sender;
+            String playerName = player.getName();
+            ChatColor teamColor = ChatColor.WHITE;
+            if (ultimateGames.getTeamManager().isPlayerInTeam(playerName)) {
+                teamColor = ultimateGames.getTeamManager().getPlayerTeam(playerName).getColor();
             }
+            StringBuilder message = new StringBuilder();
+            for (String s : args) {
+                message.append(s);
+                message.append(" ");
+            }
+            ultimateGames.getMessenger().sendMessage(arena, UGMessage.CHAT, teamColor + playerName, message.toString());
         }
     }
 
     @SuppressWarnings("deprecation")
-    private void resetInventory(Player player) {
+    private void resetInventory(Player player, Arena arena) {
         player.getInventory().clear();
         player.getInventory().addItem(new ItemStack(Material.IRON_SWORD, 1), new ItemStack(Material.BOW, 1), new ItemStack(Material.ARROW, 32), UGUtils.createInstructionBook(game));
         String playerName = player.getName();
         if (ultimateGames.getPlayerManager().isPlayerInArena(playerName)) {
+            if (arena.getStatus() == ArenaStatus.OPEN || arena.getStatus() == ArenaStatus.STARTING) {
+                player.getInventory().addItem(TEAM_SELECTOR.getItem());
+            }
             Color color = ultimateGames.getTeamManager().getPlayerTeam(playerName).getName().equals("Blue") ? Color.BLUE : Color.RED;
             ItemStack helmet = UGUtils.colorArmor(new ItemStack(Material.LEATHER_HELMET, 1), color);
             ItemStack chestplate = UGUtils.colorArmor(new ItemStack(Material.LEATHER_CHESTPLATE, 1), color);
