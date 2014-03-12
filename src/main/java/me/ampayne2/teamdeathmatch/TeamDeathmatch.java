@@ -33,7 +33,9 @@ import java.util.List;
 public class TeamDeathmatch extends GamePlugin {
     private UltimateGames ultimateGames;
     private Game game;
-    private GameItem TEAM_SELECTOR;
+
+    private GameItem teamSelector;
+    private Killcoin killcoin;
 
     @Override
     public boolean loadGame(UltimateGames ultimateGames, Game game) {
@@ -41,8 +43,11 @@ public class TeamDeathmatch extends GamePlugin {
         this.game = game;
         game.setMessages(TDMessage.class);
 
-        TEAM_SELECTOR = new TeamSelector(ultimateGames);
-        ultimateGames.getGameItemManager().registerGameItem(game, TEAM_SELECTOR);
+        teamSelector = new TeamSelector(ultimateGames);
+        killcoin = new Killcoin(ultimateGames, game, this);
+        ultimateGames.getGameItemManager()
+                .registerGameItem(game, teamSelector)
+                .registerGameItem(game, killcoin);
         return true;
     }
 
@@ -117,6 +122,9 @@ public class TeamDeathmatch extends GamePlugin {
         }
 
         for (String playerName : arena.getPlayers()) {
+            if (ultimateGames.getPointManager().hasPerk(game, playerName, "StartWithCoins")) {
+                killcoin.addCoins(playerName, 5);
+            }
             resetInventory(Bukkit.getPlayerExact(playerName), arena);
         }
         return true;
@@ -143,6 +151,9 @@ public class TeamDeathmatch extends GamePlugin {
             } else {
                 ultimateGames.getMessenger().sendGameMessage(Bukkit.getServer(), game, TDMessage.GAME_TIE, "Team Blue", "Team Red", game.getName(), arena.getName());
             }
+        }
+        for (String playerName : arena.getPlayers()) {
+            killcoin.resetCoins(playerName);
         }
     }
 
@@ -221,13 +232,16 @@ public class TeamDeathmatch extends GamePlugin {
         if (arena.getStatus() == ArenaStatus.RUNNING) {
             String playerName = event.getEntity().getName();
             Player killer = event.getEntity().getKiller();
+            String killerName = killer.getName();
             if (killer != null) {
-                ultimateGames.getMessenger().sendGameMessage(arena, game, TDMessage.KILL, killer.getName(), playerName);
-                ultimateGames.getPointManager().addPoint(game, killer.getName(), "kill", 1);
-                ultimateGames.getPointManager().addPoint(game, killer.getName(), "store", 1);
+                ultimateGames.getMessenger().sendGameMessage(arena, game, TDMessage.KILL, killerName, playerName);
+                ultimateGames.getPointManager().addPoint(game, killerName, "kill", 1);
+                ultimateGames.getPointManager().addPoint(game, killerName, "store", 1);
             } else {
                 ultimateGames.getMessenger().sendGameMessage(arena, game, TDMessage.DEATH, playerName);
             }
+            killcoin.addCoin(killerName);
+            killcoin.updateCoins(killer);
             ultimateGames.getPointManager().addPoint(game, playerName, "death", 1);
             Scoreboard scoreBoard = ultimateGames.getScoreboardManager().getScoreboard(arena);
             if (scoreBoard != null) {
@@ -239,6 +253,7 @@ public class TeamDeathmatch extends GamePlugin {
                 }
             }
         }
+        KillcoinPerk.deactivateAll(ultimateGames, arena, event.getEntity());
         event.getDrops().clear();
         UGUtils.autoRespawn(ultimateGames.getPlugin(), event.getEntity());
     }
@@ -307,6 +322,7 @@ public class TeamDeathmatch extends GamePlugin {
             ItemStack boots = UGUtils.colorArmor(new ItemStack(Material.LEATHER_BOOTS, 1), color);
             player.getInventory().setArmorContents(new ItemStack[]{boots, leggings, chestplate, helmet});
         }
+        killcoin.updateCoins(player);
         player.updateInventory();
     }
 }
