@@ -3,6 +3,7 @@ package me.ampayne2.teamdeathmatch;
 import me.ampayne2.ultimategames.api.UltimateGames;
 import me.ampayne2.ultimategames.api.arenas.Arena;
 import me.ampayne2.ultimategames.api.effects.GameSound;
+import me.ampayne2.ultimategames.api.players.teams.Team;
 import me.ampayne2.ultimategames.api.utils.UGUtils;
 import org.bukkit.ChatColor;
 import org.bukkit.Color;
@@ -55,6 +56,16 @@ public enum KillcoinPerk {
         public void activate(UltimateGames ultimateGames, TeamDeathmatch teamDeathmatch, Arena arena, Player player) {
             super.activate(ultimateGames, teamDeathmatch, arena, player);
             player.getInventory().remove(Material.BOW);
+            player.getInventory().addItem(getIcon().clone());
+            player.updateInventory();
+        }
+    },
+    @SuppressWarnings("deprecation")
+    BROADSWORD("Broadsword", "Increase your sword strength!", new ItemStack(Material.DIAMOND_SWORD), 5, true, "Broadsword") {
+        @Override
+        public void activate(UltimateGames ultimateGames, TeamDeathmatch teamDeathmatch, Arena arena, Player player) {
+            super.activate(ultimateGames, teamDeathmatch, arena, player);
+            player.getInventory().remove(Material.IRON_SWORD);
             player.getInventory().addItem(getIcon().clone());
             player.updateInventory();
         }
@@ -243,5 +254,7 @@ public enum KillcoinPerk {
         poison.apply(POISON_POTION.getIcon());
 
         LONGBOW.getIcon().addEnchantment(Enchantment.ARROW_DAMAGE, 2);
+
+        BROADSWORD.getIcon().addEnchantment(Enchantment.DAMAGE_ALL, 1);
     }
 }

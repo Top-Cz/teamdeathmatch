@@ -47,7 +47,8 @@ public class TeamDeathmatch extends GamePlugin {
         killcoin = new Killcoin(ultimateGames, game, this);
         ultimateGames.getGameItemManager()
                 .registerGameItem(game, teamSelector)
-                .registerGameItem(game, killcoin);
+                .registerGameItem(game, killcoin)
+                .registerGameItem(game, new Flashbang(ultimateGames));
         return true;
     }
 
