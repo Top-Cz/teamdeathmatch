@@ -155,6 +155,7 @@ public class Killcoin extends GameItem implements Listener {
                 } else {
                     killcoinPerk.activate(ultimateGames, teamDeathmatch, arena, event.getPlayer());
                     removeCoins(playerName, killcoinPerk.getCost());
+                    updateCoins(event.getPlayer());
                 }
             }
         }, ultimateGames.getPlugin());
