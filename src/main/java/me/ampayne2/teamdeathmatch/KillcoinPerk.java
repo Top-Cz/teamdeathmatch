@@ -54,15 +54,57 @@ public enum KillcoinPerk {
         public void activate(UltimateGames ultimateGames, TeamDeathmatch teamDeathmatch, Arena arena, Player player) {
             super.activate(ultimateGames, teamDeathmatch, arena, player);
             player.getInventory().remove(Material.BOW);
-            player.getInventory().addItem(getIcon().clone());
+            if (FIREBOW.isActivated(player.getName())) {
+                ItemStack bow = getIcon().clone();
+                bow.addEnchantment(Enchantment.ARROW_FIRE, 1);
+                player.getInventory().addItem(bow);
+            } else {
+                player.getInventory().addItem(getIcon().clone());
+            }
+        }
+    },
+    FIREBOW("Firebow", "Set fire to your arrows!", new ItemStack(Material.BOW), 3, true, "Firebow") {
+        @Override
+        public void activate(UltimateGames ultimateGames, TeamDeathmatch teamDeathmatch, Arena arena, Player player) {
+            super.activate(ultimateGames, teamDeathmatch, arena, player);
+            player.getInventory().remove(Material.BOW);
+            if (LONGBOW.isActivated(player.getName())) {
+                ItemStack bow = getIcon().clone();
+                bow.addEnchantment(Enchantment.ARROW_DAMAGE, 1);
+                player.getInventory().addItem(bow);
+            } else {
+                player.getInventory().addItem(getIcon().clone());
+            }
         }
     },
     BROADSWORD("Broadsword", "Increase your sword strength!", new ItemStack(Material.DIAMOND_SWORD), 5, true, "Broadsword") {
         @Override
         public void activate(UltimateGames ultimateGames, TeamDeathmatch teamDeathmatch, Arena arena, Player player) {
             super.activate(ultimateGames, teamDeathmatch, arena, player);
-            player.getInventory().remove(Material.IRON_SWORD);
-            player.getInventory().addItem(getIcon().clone());
+            if (FIRESWORD.isActivated(player.getName())) {
+                player.getInventory().remove(Material.IRON_SWORD);
+                ItemStack sword = FIRESWORD.getIcon().clone();
+                sword.addEnchantment(Enchantment.DAMAGE_ALL, 2);
+                player.getInventory().addItem(sword);
+            } else {
+                player.getInventory().remove(Material.IRON_SWORD);
+                player.getInventory().addItem(getIcon().clone());
+            }
+        }
+    },
+    FIRESWORD("Firesword", "Set fire to your sword!", new ItemStack(Material.IRON_SWORD), 4, true, "Firesword") {
+        @Override
+        public void activate(UltimateGames ultimateGames, TeamDeathmatch teamDeathmatch, Arena arena, Player player) {
+            super.activate(ultimateGames, teamDeathmatch, arena, player);
+            if (BROADSWORD.isActivated(player.getName())) {
+                player.getInventory().remove(Material.DIAMOND_SWORD);
+                ItemStack sword = BROADSWORD.getIcon().clone();
+                sword.addEnchantment(Enchantment.FIRE_ASPECT, 1);
+                player.getInventory().addItem(sword);
+            } else {
+                player.getInventory().remove(Material.IRON_SWORD);
+                player.getInventory().addItem(getIcon().clone());
+            }
         }
     },
     TANK("Tank", "Increase your damage resistance!", new ItemStack(Material.DIAMOND_CHESTPLATE), 10, true, "Tank") {
@@ -257,8 +299,12 @@ public enum KillcoinPerk {
         poison.setSplash(true);
         poison.apply(POISON_POTION.getIcon());
 
-        LONGBOW.getIcon().addEnchantment(Enchantment.ARROW_DAMAGE, 2);
+        LONGBOW.getIcon().addEnchantment(Enchantment.ARROW_DAMAGE, 1);
 
-        BROADSWORD.getIcon().addEnchantment(Enchantment.DAMAGE_ALL, 1);
+        FIREBOW.getIcon().addEnchantment(Enchantment.ARROW_FIRE, 1);
+
+        BROADSWORD.getIcon().addEnchantment(Enchantment.DAMAGE_ALL, 2);
+
+        FIRESWORD.getIcon().addEnchantment(Enchantment.FIRE_ASPECT, 1);
     }
 }
