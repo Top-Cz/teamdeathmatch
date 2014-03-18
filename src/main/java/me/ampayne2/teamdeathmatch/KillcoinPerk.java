@@ -107,14 +107,14 @@ public enum KillcoinPerk {
             }
         }
     },
-    TANK("Tank", "Increase your damage resistance!", new ItemStack(Material.DIAMOND_CHESTPLATE), 10, true, "Tank") {
+    TANK("Tank", "Increase your damage resistance!", new ItemStack(Material.IRON_CHESTPLATE), 10, true, "Tank") {
         @Override
         public void activate(UltimateGames ultimateGames, TeamDeathmatch teamDeathmatch, Arena arena, Player player) {
             super.activate(ultimateGames, teamDeathmatch, arena, player);
-            player.getInventory().setHelmet(new ItemStack(Material.DIAMOND_HELMET));
-            player.getInventory().setChestplate(new ItemStack(Material.DIAMOND_CHESTPLATE));
-            player.getInventory().setLeggings(new ItemStack(Material.DIAMOND_LEGGINGS));
-            player.getInventory().setBoots(new ItemStack(Material.DIAMOND_BOOTS));
+            player.getInventory().setHelmet(new ItemStack(Material.IRON_HELMET));
+            player.getInventory().setChestplate(new ItemStack(Material.IRON_CHESTPLATE));
+            player.getInventory().setLeggings(new ItemStack(Material.IRON_LEGGINGS));
+            player.getInventory().setBoots(new ItemStack(Material.IRON_BOOTS));
         }
     },
     @SuppressWarnings("deprecation")
