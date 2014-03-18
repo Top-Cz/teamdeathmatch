@@ -39,7 +39,7 @@ public class Flashbang extends ThrowableGameItem {
                     ParticleEffect.HUGE_EXPLOSION.display(location, 0, 0, 0, 0, 1);
                     for (Entity entity : item.getNearbyEntities(5, 5, 5)) {
                         if (entity instanceof LivingEntity) {
-                            ((LivingEntity) entity).addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 60, 2), true);
+                            ((LivingEntity) entity).addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 200, 2), true);
                         }
                     }
                     item.remove();
