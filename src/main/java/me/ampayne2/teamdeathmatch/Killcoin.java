@@ -116,12 +116,14 @@ public class Killcoin extends GameItem implements Listener {
      *
      * @param player The player.
      */
+    @SuppressWarnings("deprecation")
     public void updateCoins(Player player) {
         String playerName = player.getName();
         if (playerCoins.containsKey(playerName)) {
             ItemStack coins = getItem();
             coins.setAmount(playerCoins.get(playerName));
             player.getInventory().setItem(8, coins);
+            player.updateInventory();
         }
     }
 

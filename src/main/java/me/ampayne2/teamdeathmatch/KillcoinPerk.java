@@ -3,7 +3,6 @@ package me.ampayne2.teamdeathmatch;
 import me.ampayne2.ultimategames.api.UltimateGames;
 import me.ampayne2.ultimategames.api.arenas.Arena;
 import me.ampayne2.ultimategames.api.effects.GameSound;
-import me.ampayne2.ultimategames.api.players.teams.Team;
 import me.ampayne2.ultimategames.api.utils.UGUtils;
 import org.bukkit.ChatColor;
 import org.bukkit.Color;
@@ -50,24 +49,30 @@ public enum KillcoinPerk {
             player.getInventory().addItem(getIcon().clone());
         }
     },
-    @SuppressWarnings("deprecation")
     LONGBOW("Longbow", "Increase your bows power!", new ItemStack(Material.BOW), 4, true, "Longbow") {
         @Override
         public void activate(UltimateGames ultimateGames, TeamDeathmatch teamDeathmatch, Arena arena, Player player) {
             super.activate(ultimateGames, teamDeathmatch, arena, player);
             player.getInventory().remove(Material.BOW);
             player.getInventory().addItem(getIcon().clone());
-            player.updateInventory();
         }
     },
-    @SuppressWarnings("deprecation")
     BROADSWORD("Broadsword", "Increase your sword strength!", new ItemStack(Material.DIAMOND_SWORD), 5, true, "Broadsword") {
         @Override
         public void activate(UltimateGames ultimateGames, TeamDeathmatch teamDeathmatch, Arena arena, Player player) {
             super.activate(ultimateGames, teamDeathmatch, arena, player);
             player.getInventory().remove(Material.IRON_SWORD);
             player.getInventory().addItem(getIcon().clone());
-            player.updateInventory();
+        }
+    },
+    TANK("Tank", "Increase your damage resistance!", new ItemStack(Material.DIAMOND_CHESTPLATE), 10, true, "Tank") {
+        @Override
+        public void activate(UltimateGames ultimateGames, TeamDeathmatch teamDeathmatch, Arena arena, Player player) {
+            super.activate(ultimateGames, teamDeathmatch, arena, player);
+            player.getInventory().setHelmet(new ItemStack(Material.DIAMOND_HELMET));
+            player.getInventory().setChestplate(new ItemStack(Material.DIAMOND_CHESTPLATE));
+            player.getInventory().setLeggings(new ItemStack(Material.DIAMOND_LEGGINGS));
+            player.getInventory().setBoots(new ItemStack(Material.DIAMOND_BOOTS));
         }
     },
     @SuppressWarnings("deprecation")
@@ -76,11 +81,10 @@ public enum KillcoinPerk {
         public void activate(UltimateGames ultimateGames, TeamDeathmatch teamDeathmatch, Arena arena, Player player) {
             super.activate(ultimateGames, teamDeathmatch, arena, player);
             Color color = ultimateGames.getTeamManager().getPlayerTeam(player.getName()).getName().equals("Blue") ? Color.RED : Color.BLUE;
-            ItemStack helmet = UGUtils.colorArmor(new ItemStack(Material.LEATHER_HELMET), color);
-            ItemStack chestplate = UGUtils.colorArmor(new ItemStack(Material.LEATHER_CHESTPLATE), color);
-            ItemStack leggings = UGUtils.colorArmor(new ItemStack(Material.LEATHER_LEGGINGS), color);
-            ItemStack boots = UGUtils.colorArmor(new ItemStack(Material.LEATHER_BOOTS), color);
-            player.getInventory().setArmorContents(new ItemStack[]{boots, leggings, chestplate, helmet});
+            player.getInventory().setHelmet(UGUtils.colorArmor(new ItemStack(Material.LEATHER_HELMET), color));
+            player.getInventory().setChestplate(UGUtils.colorArmor(new ItemStack(Material.LEATHER_CHESTPLATE), color));
+            player.getInventory().setLeggings(UGUtils.colorArmor(new ItemStack(Material.LEATHER_LEGGINGS), color));
+            player.getInventory().setBoots(UGUtils.colorArmor(new ItemStack(Material.LEATHER_BOOTS), color));
         }
     };
 
