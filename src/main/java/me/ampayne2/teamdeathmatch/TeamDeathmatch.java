@@ -133,6 +133,10 @@ public class TeamDeathmatch extends GamePlugin {
 
     @Override
     public void endArena(Arena arena) {
+        for (String playerName : arena.getPlayers()) {
+            killcoin.resetCoins(playerName);
+            KillcoinPerk.deactivateAll(ultimateGames, arena, Bukkit.getPlayerExact(playerName));
+        }
         Scoreboard scoreBoard = ultimateGames.getScoreboardManager().getScoreboard(arena);
         if (scoreBoard != null) {
             Integer teamOneScore = scoreBoard.getScore(ChatColor.BLUE + "Team Blue");
@@ -143,18 +147,21 @@ public class TeamDeathmatch extends GamePlugin {
                     ultimateGames.getPointManager().addPoint(game, player, "store", 25);
                     ultimateGames.getPointManager().addPoint(game, player, "win", 1);
                 }
+                for (String player : ultimateGames.getTeamManager().getTeam(arena, "Red").getPlayers()) {
+                    ultimateGames.getPointManager().addPoint(game, player, "store", 5);
+                }
             } else if (teamOneScore < teamTwoScore) {
                 ultimateGames.getMessenger().sendGameMessage(Bukkit.getServer(), game, TDMessage.GAME_END, "Team Red", game.getName(), arena.getName());
                 for (String player : ultimateGames.getTeamManager().getTeam(arena, "Red").getPlayers()) {
                     ultimateGames.getPointManager().addPoint(game, player, "store", 25);
                     ultimateGames.getPointManager().addPoint(game, player, "win", 1);
                 }
+                for (String player : ultimateGames.getTeamManager().getTeam(arena, "Blue").getPlayers()) {
+                    ultimateGames.getPointManager().addPoint(game, player, "store", 5);
+                }
             } else {
                 ultimateGames.getMessenger().sendGameMessage(Bukkit.getServer(), game, TDMessage.GAME_TIE, "Team Blue", "Team Red", game.getName(), arena.getName());
             }
-        }
-        for (String playerName : arena.getPlayers()) {
-            killcoin.resetCoins(playerName);
         }
     }
 

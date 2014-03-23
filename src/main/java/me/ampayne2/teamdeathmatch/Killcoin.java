@@ -176,6 +176,7 @@ public class Killcoin extends GameItem implements Listener {
         String playerName = player.getName();
         if (perkMenus.containsKey(playerName)) {
             perkMenus.get(playerName).destroy();
+            perkMenus.remove(playerName);
         }
         perkMenus.put(playerName, getPerkMenu(arena, player));
     }
