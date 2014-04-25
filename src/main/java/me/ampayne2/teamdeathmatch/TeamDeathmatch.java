@@ -18,15 +18,23 @@ import org.bukkit.ChatColor;
 import org.bukkit.Color;
 import org.bukkit.Material;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.AnimalTamer;
+import org.bukkit.entity.Arrow;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.Wolf;
+import org.bukkit.event.block.Action;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerPickupItemEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.potion.Potion;
 import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionType;
 
 import java.util.List;
 
@@ -212,6 +220,8 @@ public class TeamDeathmatch extends GamePlugin {
         if (arena.getStatus() == ArenaStatus.RUNNING && (teamManager.getTeam(arena, "Red").getPlayers().size() <= 0 || teamManager.getTeam(arena, "Blue").getPlayers().size() <= 0)) {
             ultimateGames.getArenaManager().endArena(arena);
         }
+        killcoin.resetCoins(playerName);
+        KillcoinPerk.deactivateAll(ultimateGames, arena, player);
     }
 
     @SuppressWarnings("deprecation")
@@ -248,7 +258,11 @@ public class TeamDeathmatch extends GamePlugin {
             } else {
                 ultimateGames.getMessenger().sendGameMessage(arena, game, TDMessage.DEATH, playerName);
             }
-            killcoin.addCoin(killerName);
+            if (KillcoinPerk.DOUBLE_KILLCOINS.isActivated(killerName)) {
+                killcoin.addCoins(killerName, 2);
+            } else {
+                killcoin.addCoin(killerName);
+            }
             killcoin.updateCoins(killer);
             ultimateGames.getPointManager().addPoint(game, playerName, "death", 1);
             Scoreboard scoreBoard = ultimateGames.getScoreboardManager().getScoreboard(arena);
@@ -276,6 +290,81 @@ public class TeamDeathmatch extends GamePlugin {
     public void onEntityDamage(Arena arena, EntityDamageEvent event) {
         if (arena.getStatus() != ArenaStatus.RUNNING) {
             event.setCancelled(true);
+        }
+    }
+
+    @Override
+    public void onEntityDamageByEntity(Arena arena, EntityDamageByEntityEvent event) {
+        if (event.getEntity() instanceof Wolf) {
+            AnimalTamer animalTamer = ((Wolf) event.getEntity()).getOwner();
+            if (animalTamer != null && animalTamer instanceof Player) {
+                Player damager = null;
+                if (event.getDamager() instanceof Player) {
+                    damager = (Player) event.getDamager();
+                } else if (event.getDamager() instanceof Arrow && ((Arrow) event.getDamager()).getShooter() instanceof Player) {
+                    damager = (Player) ((Arrow) event.getDamager()).getShooter();
+                }
+                if (damager != null) {
+                    Player owner = (Player) animalTamer;
+                    Team team = ultimateGames.getTeamManager().getPlayerTeam(owner.getName());
+                    if (team != null && team.hasPlayer(damager.getName())) {
+                        event.setCancelled(true);
+                    }
+                }
+            }
+        }
+    }
+
+    @Override
+    public void onPlayerInteract(Arena arena, PlayerInteractEvent event) {
+        if (event.getItem() != null) {
+            if (arena.getStatus() == ArenaStatus.RUNNING) {
+                ItemStack item = event.getItem();
+                if (item.getType() == Material.BOW) {
+                    Player player = event.getPlayer();
+                    if (!player.getInventory().contains(Material.ARROW)) {
+                        if (event.getAction().equals(Action.RIGHT_CLICK_AIR)) {
+                            ultimateGames.getMessenger().sendGameMessage(player, game, TDMessage.OUT_OF_ARROWS);
+                        } else if (event.getAction().equals(Action.LEFT_CLICK_AIR)) {
+                            if (killcoin.getCoins(player.getName()) >= KillcoinPerk.ARROWS.getCost()) {
+                                KillcoinPerk.ARROWS.activate(ultimateGames, this, arena, player);
+                            } else {
+                                ultimateGames.getMessenger().sendGameMessage(event.getPlayer(), game, TDMessage.PERK_NOTENOUGHCOINS, KillcoinPerk.ARROWS.getName());
+                            }
+                        }
+                    }
+                } else {
+                    for (KillcoinPerk killcoinPerk : KillcoinPerk.class.getEnumConstants()) {
+                        if (!killcoinPerk.showInMenu() && item.getType() == killcoinPerk.getIcon().getType()) {
+                            if (item.getType() == Material.POTION) {
+                                Potion potion = Potion.fromItemStack(item);
+                                if (!((potion.getType() == PotionType.INSTANT_DAMAGE && killcoinPerk == KillcoinPerk.DAMAGE_POTION) || (potion.getType() == PotionType.POISON && killcoinPerk == KillcoinPerk.POISON_POTION))) {
+                                    continue;
+                                }
+                            }
+                            String playerName = event.getPlayer().getName();
+                            if (killcoin.getCoins(playerName) < killcoinPerk.getCost()) {
+                                ultimateGames.getMessenger().sendGameMessage(event.getPlayer(), game, TDMessage.PERK_NOTENOUGHCOINS, killcoinPerk.getName());
+                            } else if (killcoinPerk.isActivated(playerName)) {
+                                ultimateGames.getMessenger().sendGameMessage(event.getPlayer(), game, TDMessage.PERK_ALREADYACTIVE, killcoinPerk.getName());
+                            } else {
+                                if (killcoinPerk.canActivate(ultimateGames, this, arena, event.getPlayer())) {
+                                    killcoinPerk.activate(ultimateGames, this, arena, event.getPlayer());
+                                    killcoin.removeCoins(playerName, killcoinPerk.getCost());
+                                    killcoin.updateCoins(event.getPlayer());
+                                    return;
+                                } else {
+                                    ultimateGames.getMessenger().sendGameMessage(event.getPlayer(), game, TDMessage.PERK_CANNOTACTIVATE, killcoinPerk.getName());
+                                }
+                            }
+                            event.setCancelled(true);
+                            break;
+                        }
+                    }
+                }
+            } else {
+                event.setCancelled(true);
+            }
         }
     }
 
@@ -315,7 +404,10 @@ public class TeamDeathmatch extends GamePlugin {
     @SuppressWarnings("deprecation")
     private void resetInventory(Player player, Arena arena) {
         player.getInventory().clear();
-        player.getInventory().addItem(new ItemStack(Material.IRON_SWORD, 1), new ItemStack(Material.BOW, 1), new ItemStack(Material.ARROW, 32), UGUtils.createInstructionBook(game));
+        player.getInventory().addItem(new ItemStack(Material.IRON_SWORD, 1), new ItemStack(Material.BOW, 1), KillcoinPerk.DAMAGE_POTION.getMenuIcon().clone(), KillcoinPerk.POISON_POTION.getMenuIcon().clone());
+        killcoin.updateCoins(player);
+        player.getInventory().setItem(8, UGUtils.createInstructionBook(game));
+        player.getInventory().setItem(9, new ItemStack(Material.ARROW, 32));
         String playerName = player.getName();
         if (ultimateGames.getPlayerManager().isPlayerInArena(playerName)) {
             /*
@@ -324,13 +416,12 @@ public class TeamDeathmatch extends GamePlugin {
             }
             */
             Color color = ultimateGames.getTeamManager().getPlayerTeam(playerName).getName().equals("Blue") ? Color.BLUE : Color.RED;
-            ItemStack helmet = UGUtils.colorArmor(new ItemStack(Material.LEATHER_HELMET, 1), color);
-            ItemStack chestplate = UGUtils.colorArmor(new ItemStack(Material.LEATHER_CHESTPLATE, 1), color);
-            ItemStack leggings = UGUtils.colorArmor(new ItemStack(Material.LEATHER_LEGGINGS, 1), color);
-            ItemStack boots = UGUtils.colorArmor(new ItemStack(Material.LEATHER_BOOTS, 1), color);
+            ItemStack helmet = UGUtils.colorArmor(new ItemStack(Material.LEATHER_HELMET), color);
+            ItemStack chestplate = UGUtils.colorArmor(new ItemStack(Material.LEATHER_CHESTPLATE), color);
+            ItemStack leggings = UGUtils.colorArmor(new ItemStack(Material.LEATHER_LEGGINGS), color);
+            ItemStack boots = UGUtils.colorArmor(new ItemStack(Material.LEATHER_BOOTS), color);
             player.getInventory().setArmorContents(new ItemStack[]{boots, leggings, chestplate, helmet});
         }
-        killcoin.updateCoins(player);
         player.updateInventory();
     }
 }

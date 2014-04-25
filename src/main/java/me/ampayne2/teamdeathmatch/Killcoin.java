@@ -3,6 +3,7 @@ package me.ampayne2.teamdeathmatch;
 import me.ampayne2.ultimategames.api.UltimateGames;
 import me.ampayne2.ultimategames.api.arenas.Arena;
 import me.ampayne2.ultimategames.api.arenas.ArenaStatus;
+import me.ampayne2.ultimategames.api.effects.GameSound;
 import me.ampayne2.ultimategames.api.events.players.PlayerPostJoinEvent;
 import me.ampayne2.ultimategames.api.games.Game;
 import me.ampayne2.ultimategames.api.games.items.GameItem;
@@ -10,6 +11,7 @@ import me.ampayne2.ultimategames.api.utils.IconMenu;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
+import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -32,6 +34,7 @@ public class Killcoin extends GameItem implements Listener {
     private final Map<String, Integer> playerCoins = new HashMap<>();
     private final Map<String, IconMenu> perkMenus = new HashMap<>();
     private static final ItemStack ITEM;
+    private static final GameSound OPEN_SOUND = new GameSound(Sound.CHEST_OPEN, 1, 1);
 
     public Killcoin(UltimateGames ultimateGames, Game game, TeamDeathmatch teamDeathmatch) {
         super(ITEM, false);
@@ -46,6 +49,7 @@ public class Killcoin extends GameItem implements Listener {
     public boolean click(Arena arena, PlayerInteractEvent event) {
         if (arena.getStatus() == ArenaStatus.RUNNING) {
             getPerkMenu(arena, event.getPlayer()).open(event.getPlayer());
+            OPEN_SOUND.play(event.getPlayer(), event.getPlayer().getLocation());
         }
         return true;
     }
@@ -122,7 +126,10 @@ public class Killcoin extends GameItem implements Listener {
         if (playerCoins.containsKey(playerName)) {
             ItemStack coins = getItem();
             coins.setAmount(playerCoins.get(playerName));
-            player.getInventory().setItem(8, coins);
+            player.getInventory().setItem(7, coins);
+            player.updateInventory();
+        } else {
+            player.getInventory().setItem(7, null);
             player.updateInventory();
         }
     }
@@ -142,11 +149,11 @@ public class Killcoin extends GameItem implements Listener {
 
         final List<KillcoinPerk> killcoinPerks = new ArrayList<>();
         for (KillcoinPerk killcoinPerk : KillcoinPerk.class.getEnumConstants()) {
-            if (killcoinPerk.getPerkName() == null || ultimateGames.getPointManager().hasPerk(game, playerName, killcoinPerk.getPerkName())) {
+            if (killcoinPerk.showInMenu() && (killcoinPerk.getPerkName() == null || ultimateGames.getPointManager().hasPerk(game, playerName, killcoinPerk.getPerkName()))) {
                 killcoinPerks.add(killcoinPerk);
             }
         }
-        IconMenu menu = new IconMenu(ChatColor.GOLD + "Spoils of War", ((int) Math.ceil(killcoinPerks.size() / 9.0)) * 9, new IconMenu.OptionClickEventHandler() {
+        IconMenu menu = new IconMenu(ChatColor.GOLD + "Spoils of War", IconMenu.getRequiredSize(killcoinPerks.size()), new IconMenu.OptionClickEventHandler() {
             @Override
             public void onOptionClick(IconMenu.OptionClickEvent event) {
                 KillcoinPerk killcoinPerk = killcoinPerks.get(event.getPosition());
@@ -155,9 +162,13 @@ public class Killcoin extends GameItem implements Listener {
                 } else if (killcoinPerk.isActivated(playerName)) {
                     ultimateGames.getMessenger().sendGameMessage(event.getPlayer(), game, TDMessage.PERK_ALREADYACTIVE, killcoinPerk.getName());
                 } else {
-                    killcoinPerk.activate(ultimateGames, teamDeathmatch, arena, event.getPlayer());
-                    removeCoins(playerName, killcoinPerk.getCost());
-                    updateCoins(event.getPlayer());
+                    if (killcoinPerk.canActivate(ultimateGames, teamDeathmatch, arena, event.getPlayer())) {
+                        killcoinPerk.activate(ultimateGames, teamDeathmatch, arena, event.getPlayer());
+                        removeCoins(playerName, killcoinPerk.getCost());
+                        updateCoins(event.getPlayer());
+                    } else {
+                        ultimateGames.getMessenger().sendGameMessage(event.getPlayer(), game, TDMessage.PERK_CANNOTACTIVATE, killcoinPerk.getName());
+                    }
                 }
             }
         }, ultimateGames.getPlugin());
