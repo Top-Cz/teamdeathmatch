@@ -2,9 +2,9 @@ package me.ampayne2.teamdeathmatch;
 
 import me.ampayne2.ultimategames.api.UltimateGames;
 import me.ampayne2.ultimategames.api.arenas.Arena;
-import me.ampayne2.ultimategames.api.effects.GameSound;
-import me.ampayne2.ultimategames.api.effects.ParticleEffect;
 import me.ampayne2.ultimategames.api.games.items.ThrowableGameItem;
+import ninja.amp.ampeffects.effects.particles.ParticleEffect;
+import ninja.amp.ampeffects.effects.sounds.SoundEffect;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Sound;
@@ -19,8 +19,8 @@ import org.bukkit.potion.PotionEffectType;
  */
 public class Flashbang extends ThrowableGameItem {
     private final UltimateGames ultimateGames;
-    private static final GameSound THROW_SOUND = new GameSound(Sound.IRONGOLEM_THROW, 1, 1);
-    private static final GameSound EXPLODE_SOUND = new GameSound(Sound.EXPLODE, 1, 1);
+    private static final SoundEffect THROW_SOUND = new SoundEffect(Sound.IRONGOLEM_THROW, 1, 1);
+    private static final SoundEffect EXPLODE_SOUND = new SoundEffect(Sound.EXPLODE, 1, 1);
 
     public Flashbang(UltimateGames ultimateGames) {
         super(KillcoinPerk.FLASHBANG.getIcon());

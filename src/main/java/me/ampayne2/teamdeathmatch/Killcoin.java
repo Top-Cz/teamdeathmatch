@@ -3,11 +3,11 @@ package me.ampayne2.teamdeathmatch;
 import me.ampayne2.ultimategames.api.UltimateGames;
 import me.ampayne2.ultimategames.api.arenas.Arena;
 import me.ampayne2.ultimategames.api.arenas.ArenaStatus;
-import me.ampayne2.ultimategames.api.effects.GameSound;
 import me.ampayne2.ultimategames.api.events.players.PlayerPostJoinEvent;
 import me.ampayne2.ultimategames.api.games.Game;
 import me.ampayne2.ultimategames.api.games.items.GameItem;
 import me.ampayne2.ultimategames.api.utils.IconMenu;
+import ninja.amp.ampeffects.effects.sounds.SoundEffect;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -34,7 +34,7 @@ public class Killcoin extends GameItem implements Listener {
     private final Map<String, Integer> playerCoins = new HashMap<>();
     private final Map<String, IconMenu> perkMenus = new HashMap<>();
     private static final ItemStack ITEM;
-    private static final GameSound OPEN_SOUND = new GameSound(Sound.CHEST_OPEN, 1, 1);
+    private static final SoundEffect OPEN_SOUND = new SoundEffect(Sound.CHEST_OPEN, 1, 1);
 
     public Killcoin(UltimateGames ultimateGames, Game game, TeamDeathmatch teamDeathmatch) {
         super(ITEM, false);
@@ -49,7 +49,7 @@ public class Killcoin extends GameItem implements Listener {
     public boolean click(Arena arena, PlayerInteractEvent event) {
         if (arena.getStatus() == ArenaStatus.RUNNING) {
             getPerkMenu(arena, event.getPlayer()).open(event.getPlayer());
-            OPEN_SOUND.play(event.getPlayer(), event.getPlayer().getLocation());
+            OPEN_SOUND.play(event.getPlayer().getLocation(), event.getPlayer());
         }
         return true;
     }

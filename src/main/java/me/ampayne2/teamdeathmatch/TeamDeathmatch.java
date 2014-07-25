@@ -250,18 +250,18 @@ public class TeamDeathmatch extends GamePlugin {
         if (arena.getStatus() == ArenaStatus.RUNNING) {
             String playerName = event.getEntity().getName();
             Player killer = event.getEntity().getKiller();
-            String killerName = killer.getName();
             if (killer != null) {
+                String killerName = killer.getName();
                 ultimateGames.getMessenger().sendGameMessage(arena, game, TDMessage.KILL, killerName, playerName);
                 ultimateGames.getPointManager().addPoint(game, killerName, "kill", 1);
                 ultimateGames.getPointManager().addPoint(game, killerName, "store", 1);
+                if (KillcoinPerk.DOUBLE_KILLCOINS.isActivated(killerName)) {
+                    killcoin.addCoins(killerName, 2);
+                } else {
+                    killcoin.addCoin(killerName);
+                }
             } else {
                 ultimateGames.getMessenger().sendGameMessage(arena, game, TDMessage.DEATH, playerName);
-            }
-            if (KillcoinPerk.DOUBLE_KILLCOINS.isActivated(killerName)) {
-                killcoin.addCoins(killerName, 2);
-            } else {
-                killcoin.addCoin(killerName);
             }
             killcoin.updateCoins(killer);
             ultimateGames.getPointManager().addPoint(game, playerName, "death", 1);
