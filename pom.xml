@@ -8,6 +8,10 @@
     <artifactId>teamdeathmatch</artifactId>
     <version>1.0-SNAPSHOT</version>
 
+    <organization>
+        <name>UltimateGames Staff</name>
+        <url>https://github.com/UltimateGames/</url>
+    </organization>
     <repositories>
         <repository>
             <id>bukkit-repo</id>
@@ -42,7 +46,7 @@
         <dependency>
             <groupId>org.bukkit</groupId>
             <artifactId>bukkit</artifactId>
-            <version>1.7.9-R0.1-SNAPSHOT</version>
+            <version>1.7.9-R0.2</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>
@@ -80,57 +84,39 @@
                 </configuration>
             </plugin>
             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-shade-plugin</artifactId>
-                <version>1.7.1</version>
+                <groupId>com.mycila.maven-license-plugin</groupId>
+                <artifactId>maven-license-plugin</artifactId>
+                <version>1.10.b1</version>
                 <executions>
                     <execution>
-                        <phase>package</phase>
+                        <phase>clean</phase>
                         <goals>
-                            <goal>shade</goal>
-                        </goals>
-                        <configuration>
-                            <relocations>
-                                <relocation>
-                                    <pattern>com.greatmancode.tools</pattern>
-                                    <shadedPattern>com.greatmancode.craftconomy3.tools</shadedPattern>
-                                </relocation>
-                            </relocations>
-                            <artifactSet>
-                                <excludes>
-                                    <exclude>org.bukkit:bukkit</exclude>
-                                    <exclude>com.google.guava</exclude>
-                                </excludes>
-                            </artifactSet>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            <!-- Source .jar -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-source-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>attach-sources</id>
-                        <goals>
-                            <goal>jar</goal>
+                            <goal>format</goal>
                         </goals>
                     </execution>
                 </executions>
-            </plugin>
-            <!-- Javadoc .jar -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-javadoc-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>attach-javadocs</id>
-                        <goals>
-                            <goal>jar</goal>
-                        </goals>
-                    </execution>
-                </executions>
+                <configuration>
+                    <quiet>false</quiet>
+                    <encoding>UTF-8</encoding>
+                    <strictCheck>true</strictCheck>
+                    <header>${basedir}/HEADER.txt</header>
+                    <keywords>
+                        <keyword>${project.name}</keyword>
+                        <keyword>license</keyword>
+                    </keywords>
+                    <mapping>
+                        <java>SLASHSTAR_STYLE</java>
+                    </mapping>
+                    <properties>
+                        <name>${project.name}</name>
+                        <url>${project.organization.url}</url>
+                        <copyright>Copyright (c) 2013-2014, ${project.organization.name}</copyright>
+                    </properties>
+                    <includes>
+                        <include>src/main/java/**</include>
+                        <include>src/test/java/**</include>
+                    </includes>
+                </configuration>
             </plugin>
         </plugins>
     </build>
