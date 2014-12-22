@@ -1,7 +1,7 @@
 main-class: "me.ampayne2.teamdeathmatch.TeamDeathmatch"
 description: "The official Ultimate Games Team Deathmatch game"
 version: "1.0"
-author: "ampayne2"
+author: "ampayne2, greatman"
 playerType: "CONFIGUREABLE"
 DefaultSettings:
   MinPlayers: 4
@@ -15,3 +15,9 @@ CustomValues:
   GameTime: 300
 Instructions:
 - "Kill the other team as much as possible in the time given!"
+BlockPlaceWhitelist:
+- "HARD_CLAY"
+- "STAINED_CLAY"
+BlockBreakWhitelist:
+- "HARD_CLAY"
+- "STAINED_CLAY"

@@ -3,8 +3,9 @@ package me.ampayne2.teamdeathmatch;
 import me.ampayne2.ultimategames.api.message.Message;
 
 public enum TDMessage implements Message {
-    GAME_END("GameEnd", "%s won %s on arena %s!"),
-    GAME_TIE("GameTie", "%s and %s tied %s on arena %s!"),
+    GAME_END("GameEnd", "b%s won %s on arena %s!"),
+    GAME_TIE("GameTie", "b%s and %s tied %s on arena %s!"),
+    GAME_NOT_STARTED("GameNotStarted", "&4Cannot buy perks before the game starts!"),
     KILL("Kill", "%s killed %s!"),
     DEATH("Death", "%s died!"),
     PERK_ACTIVATE("Perk.Activate", "&bActivated %s&b!"),

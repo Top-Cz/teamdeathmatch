@@ -16,6 +16,7 @@ import me.ampayne2.ultimategames.api.utils.UGUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Color;
+import org.bukkit.Effect;
 import org.bukkit.Material;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.AnimalTamer;
@@ -32,6 +33,7 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerPickupItemEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.potion.Potion;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionType;
@@ -57,12 +59,12 @@ public class TeamDeathmatch extends GamePlugin {
                 .registerGameItem(game, teamSelector)
                 .registerGameItem(game, killcoin)
                 .registerGameItem(game, new Flashbang(ultimateGames));
+
         return true;
     }
 
     @Override
     public void unloadGame() {
-
     }
 
     @Override
@@ -183,8 +185,8 @@ public class TeamDeathmatch extends GamePlugin {
         return true;
     }
 
-    @SuppressWarnings("deprecation")
     @Override
+    @SuppressWarnings("deprecation")
     public boolean addPlayer(Player player, Arena arena) {
         if (arena.getStatus() == ArenaStatus.OPEN && arena.getPlayers().size() >= arena.getMinPlayers() && !ultimateGames.getCountdownManager().hasStartingCountdown(arena)) {
             ultimateGames.getCountdownManager().createStartingCountdown(arena, ultimateGames.getConfigManager().getGameConfig(game).getInt("CustomValues.StartWaitTime"));
@@ -224,8 +226,8 @@ public class TeamDeathmatch extends GamePlugin {
         KillcoinPerk.deactivateAll(ultimateGames, arena, player);
     }
 
-    @SuppressWarnings("deprecation")
     @Override
+    @SuppressWarnings("deprecation")
     public boolean addSpectator(Player player, Arena arena) {
         ultimateGames.getSpawnpointManager().getSpectatorSpawnPoint(arena).teleportPlayer(player);
         for (PotionEffect potionEffect : player.getActivePotionEffects()) {
@@ -242,7 +244,6 @@ public class TeamDeathmatch extends GamePlugin {
 
     @Override
     public void removeSpectator(Player player, Arena arena) {
-
     }
 
     @Override
@@ -254,7 +255,7 @@ public class TeamDeathmatch extends GamePlugin {
                 String killerName = killer.getName();
                 ultimateGames.getMessenger().sendGameMessage(arena, game, TDMessage.KILL, killerName, playerName);
                 ultimateGames.getPointManager().addPoint(game, killerName, "kill", 1);
-                ultimateGames.getPointManager().addPoint(game, killerName, "store", 1);
+                ultimateGames.getPointManager().addPoint(game, killerName, "store", 2);
                 if (KillcoinPerk.DOUBLE_KILLCOINS.isActivated(killerName)) {
                     killcoin.addCoins(killerName, 2);
                 } else {
@@ -288,7 +289,23 @@ public class TeamDeathmatch extends GamePlugin {
 
     @Override
     public void onEntityDamage(Arena arena, EntityDamageEvent event) {
-        if (arena.getStatus() != ArenaStatus.RUNNING) {
+        if (arena.getStatus() == ArenaStatus.RUNNING) {
+            if (event.getEntity() instanceof Player) {
+                Player player = (Player) event.getEntity();
+                switch (event.getCause()) {
+                    case FALL:
+                    case FIRE:
+                    case FIRE_TICK:
+                    case POISON:
+                    case SUICIDE:
+                    case WITHER:
+                        player.getWorld().playEffect(player.getLocation(), Effect.STEP_SOUND, Material.REDSTONE_BLOCK);
+                        break;
+                    default:
+                        player.getWorld().playEffect(player.getEyeLocation(), Effect.STEP_SOUND, Material.REDSTONE_BLOCK);
+                }
+            }
+        } else {
             event.setCancelled(true);
         }
     }
@@ -316,12 +333,13 @@ public class TeamDeathmatch extends GamePlugin {
     }
 
     @Override
+    @SuppressWarnings("deprecation")
     public void onPlayerInteract(Arena arena, PlayerInteractEvent event) {
         if (event.getItem() != null) {
             if (arena.getStatus() == ArenaStatus.RUNNING) {
+                Player player = event.getPlayer();
                 ItemStack item = event.getItem();
                 if (item.getType() == Material.BOW) {
-                    Player player = event.getPlayer();
                     if (!player.getInventory().contains(Material.ARROW)) {
                         if (event.getAction().equals(Action.RIGHT_CLICK_AIR)) {
                             ultimateGames.getMessenger().sendGameMessage(player, game, TDMessage.OUT_OF_ARROWS);
@@ -329,7 +347,7 @@ public class TeamDeathmatch extends GamePlugin {
                             if (killcoin.getCoins(player.getName()) >= KillcoinPerk.ARROWS.getCost()) {
                                 KillcoinPerk.ARROWS.activate(ultimateGames, this, arena, player);
                             } else {
-                                ultimateGames.getMessenger().sendGameMessage(event.getPlayer(), game, TDMessage.PERK_NOTENOUGHCOINS, KillcoinPerk.ARROWS.getName());
+                                ultimateGames.getMessenger().sendGameMessage(player, game, TDMessage.PERK_NOTENOUGHCOINS, KillcoinPerk.ARROWS.getName());
                             }
                         }
                     }
@@ -342,28 +360,31 @@ public class TeamDeathmatch extends GamePlugin {
                                     continue;
                                 }
                             }
-                            String playerName = event.getPlayer().getName();
+
+                            String playerName = player.getName();
                             if (killcoin.getCoins(playerName) < killcoinPerk.getCost()) {
-                                ultimateGames.getMessenger().sendGameMessage(event.getPlayer(), game, TDMessage.PERK_NOTENOUGHCOINS, killcoinPerk.getName());
+                                ultimateGames.getMessenger().sendGameMessage(player, game, TDMessage.PERK_NOTENOUGHCOINS, killcoinPerk.getName());
                             } else if (killcoinPerk.isActivated(playerName)) {
-                                ultimateGames.getMessenger().sendGameMessage(event.getPlayer(), game, TDMessage.PERK_ALREADYACTIVE, killcoinPerk.getName());
+                                ultimateGames.getMessenger().sendGameMessage(player, game, TDMessage.PERK_ALREADYACTIVE, killcoinPerk.getName());
                             } else {
-                                if (killcoinPerk.canActivate(ultimateGames, this, arena, event.getPlayer())) {
-                                    killcoinPerk.activate(ultimateGames, this, arena, event.getPlayer());
+                                if (killcoinPerk.canActivate(ultimateGames, this, arena, player)) {
+                                    killcoinPerk.activate(ultimateGames, this, arena, player);
                                     killcoin.removeCoins(playerName, killcoinPerk.getCost());
-                                    killcoin.updateCoins(event.getPlayer());
+                                    killcoin.updateCoins(player);
                                     return;
                                 } else {
-                                    ultimateGames.getMessenger().sendGameMessage(event.getPlayer(), game, TDMessage.PERK_CANNOTACTIVATE, killcoinPerk.getName());
+                                    ultimateGames.getMessenger().sendGameMessage(player, game, TDMessage.PERK_CANNOTACTIVATE, killcoinPerk.getName());
                                 }
                             }
                             event.setCancelled(true);
+                            player.updateInventory();
                             break;
                         }
                     }
                 }
             } else {
                 event.setCancelled(true);
+                event.getPlayer().updateInventory();
             }
         }
     }
@@ -403,11 +424,15 @@ public class TeamDeathmatch extends GamePlugin {
 
     @SuppressWarnings("deprecation")
     private void resetInventory(Player player, Arena arena) {
-        player.getInventory().clear();
-        player.getInventory().addItem(new ItemStack(Material.IRON_SWORD, 1), new ItemStack(Material.BOW, 1), KillcoinPerk.DAMAGE_POTION.getMenuIcon().clone(), KillcoinPerk.POISON_POTION.getMenuIcon().clone());
+        PlayerInventory inventory = player.getInventory();
+        inventory.clear();
+        inventory.setItem(0, new ItemStack(Material.IRON_SWORD));
+        inventory.setItem(1, new ItemStack(Material.BOW));
+        inventory.setItem(3, KillcoinPerk.DAMAGE_POTION.getMenuIcon().clone());
+        inventory.setItem(4, KillcoinPerk.POISON_POTION.getMenuIcon().clone());
         killcoin.updateCoins(player);
-        player.getInventory().setItem(8, UGUtils.createInstructionBook(game));
-        player.getInventory().setItem(9, new ItemStack(Material.ARROW, 32));
+        inventory.setItem(8, UGUtils.createInstructionBook(game));
+        inventory.setItem(9, new ItemStack(Material.ARROW, 32));
         String playerName = player.getName();
         if (ultimateGames.getPlayerManager().isPlayerInArena(playerName)) {
             /*
